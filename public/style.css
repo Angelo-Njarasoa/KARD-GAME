@@ -15,12 +15,13 @@ body {
   background: radial-gradient(ellipse at center, #1a0a2e 0%, #07070f 100%);
   color: #fff;
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   user-select: none;
 }
 
 /* ─── Screens ───────────────────────────────────────────────────── */
-.screen { display: none; width: 100vw; height: 100vh; position: fixed; top: 0; left: 0; }
+.screen { display: none; width: 100vw; height: 100vh; height: 100dvh; position: fixed; top: 0; left: 0; }
 .screen.active { display: flex; align-items: center; justify-content: center; }
 #screen-game.active { display: flex; }
 
@@ -89,7 +90,9 @@ body {
   flex-direction: column;
   width: 100vw;
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* ─── Table Wrap ────────────────────────────────────────────────── */
@@ -110,8 +113,8 @@ body {
 
 /* ─── The Table ─────────────────────────────────────────────────── */
 .table {
-  width: clamp(200px, 58vmin, 340px);
-  height: clamp(200px, 58vmin, 340px);
+  width: clamp(180px, 52vmin, 340px);
+  height: clamp(180px, 52vmin, 340px);
   border-radius: 50%;
   background:
     radial-gradient(ellipse at 35% 30%, rgba(255,255,255,0.08) 0%, transparent 60%),
@@ -491,13 +494,15 @@ body {
     flex-direction: row;
     justify-content: center;
     flex-wrap: wrap;
-    gap: 6px;
-    padding: 6px 8px;
+    gap: 4px;
+    padding: 4px 6px;
     pointer-events: auto;
     background: rgba(0,0,0,0.25);
     border-bottom: 1px solid rgba(255,255,255,0.06);
     flex-shrink: 0;
     order: -1;
+    max-height: 90px;
+    overflow-y: auto;
   }
 
   /* Opponent zones: static layout, no absolute positioning */
@@ -527,15 +532,15 @@ body {
   .card-label { font-size: 20px; }
 
   /* My hand */
-  .my-area { padding: 6px 10px 8px; }
-  .my-bar { margin-bottom: 4px; }
+  .my-area { padding: 4px 8px 6px; }
+  .my-bar { margin-bottom: 3px; }
   .my-name { font-size: 11px; }
-  .btn-uno { font-size: 13px; padding: 6px 16px; }
-  .hand { gap: 4px; padding: 2px 4px 2px; }
-  .hand .card { width: 48px; height: 72px; font-size: 17px; }
-  .hand .card .card-corner-tl { font-size: 10px; top: 3px; left: 4px; }
-  .hand .card .card-corner-br { font-size: 10px; bottom: 3px; right: 4px; }
-  .hand .card .card-label { font-size: 17px; }
+  .btn-uno { font-size: 12px; padding: 5px 14px; }
+  .hand { gap: 3px; padding: 2px 4px; }
+  .hand .card { width: 44px; height: 66px; font-size: 15px; border-radius: 8px; }
+  .hand .card .card-corner-tl { font-size: 9px; top: 3px; left: 4px; }
+  .hand .card .card-corner-br { font-size: 9px; bottom: 3px; right: 4px; }
+  .hand .card .card-label { font-size: 15px; }
 
   /* Color picker */
   .color-picker { padding: 18px 14px; width: calc(100vw - 40px); }
