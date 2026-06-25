@@ -121,6 +121,8 @@ function getAngles(n) {
   return Array.from({ length: n }, (_, i) => -spread / 2 + (spread / (n - 1)) * i);
 }
 
+function isMobile() { return window.innerWidth < 600; }
+
 function renderOpponents(state) {
   const zonesEl = document.getElementById('opponents-zones');
   zonesEl.innerHTML = '';
@@ -129,22 +131,28 @@ function renderOpponents(state) {
     .map((p, originalIndex) => ({ ...p, originalIndex }))
     .filter(p => !p.isYou);
 
-  const TABLE_RADIUS = 170; // half of 340px table
-  const DIST = TABLE_RADIUS + 72;
+  const mobile = isMobile();
+  const tableEl = document.querySelector('.table');
+  const tableSize = tableEl ? tableEl.offsetWidth : 340;
+  const TABLE_RADIUS = tableSize / 2;
+  const DIST = TABLE_RADIUS + (mobile ? 0 : 72);
   const angles = getAngles(opponents.length);
 
   opponents.forEach((p, i) => {
-    const angle = angles[i];
-    const rad = ((angle - 90) * Math.PI) / 180;
-    const x = Math.cos(rad) * DIST;
-    const y = Math.sin(rad) * DIST;
-
     const zone = document.createElement('div');
     zone.className = 'opponent-zone'
       + (p.isCurrent ? ' active-turn' : '')
       + (p.disconnected ? ' disconnected' : '');
-    zone.style.left = `calc(50% + ${x}px)`;
-    zone.style.top = `calc(50% + ${y}px)`;
+
+    if (!mobile) {
+      const angle = angles[i];
+      const rad = ((angle - 90) * Math.PI) / 180;
+      const x = Math.cos(rad) * DIST;
+      const y = Math.sin(rad) * DIST;
+      zone.style.left = `calc(50% + ${x}px)`;
+      zone.style.top = `calc(50% + ${y}px)`;
+    }
+
     zone.style.setProperty('--accent', ZONE_COLORS[i % ZONE_COLORS.length]);
 
     const visibleCards = Math.min(Math.max(p.handCount, 0), 5);
@@ -342,3 +350,11 @@ function showToast(msg) {
   document.body.appendChild(t);
   setTimeout(() => t.remove(), 2600);
 }
+
+// Re-render opponents on orientation change
+let lastState = null;
+const _origRenderOpponents = renderOpponents;
+socket.on('gameState', (state) => { lastState = state; });
+window.addEventListener('resize', () => {
+  if (lastState) renderOpponents(lastState);
+});

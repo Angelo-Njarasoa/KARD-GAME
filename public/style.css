@@ -110,8 +110,8 @@ body {
 
 /* ─── The Table ─────────────────────────────────────────────────── */
 .table {
-  width: 340px;
-  height: 340px;
+  width: clamp(200px, 58vmin, 340px);
+  height: clamp(200px, 58vmin, 340px);
   border-radius: 50%;
   background:
     radial-gradient(ellipse at 35% 30%, rgba(255,255,255,0.08) 0%, transparent 60%),
@@ -222,6 +222,13 @@ body {
   cursor: pointer;
 }
 .card.playable:hover { transform: translateY(-10px) scale(1.06); box-shadow: 0 0 0 3px #fff, 0 14px 30px rgba(0,0,0,0.5); }
+
+/* Touch devices: no hover lift, instant tap */
+.card { touch-action: manipulation; }
+@media (hover: none) {
+  .card.playable:hover { transform: none; box-shadow: 0 0 0 3px rgba(255,255,255,0.5), 0 6px 20px rgba(0,0,0,0.5); }
+  .card.playable:active { transform: scale(0.93); }
+}
 
 .card-corner-tl { position: absolute; top: 6px; left: 8px; font-size: 13px; font-weight: 900; line-height: 1; }
 .card-corner-br { position: absolute; bottom: 6px; right: 8px; font-size: 13px; font-weight: 900; line-height: 1; transform: rotate(180deg); }
@@ -458,4 +465,84 @@ body {
   15%  { opacity: 1; top: 20px; }
   75%  { opacity: 1; top: 20px; }
   100% { opacity: 0; top: 10px; }
+}
+
+/* ─── Mobile ────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+
+  /* Lobby */
+  .lobby-box { padding: 24px 18px; margin: 12px; border-radius: 16px; }
+  .logo { font-size: 52px; }
+  .tagline { font-size: 13px; margin-bottom: 20px; }
+  .room-code { font-size: 24px; }
+
+  /* Game layout: opponents become a top strip */
+  .table-wrap {
+    flex-direction: column;
+    justify-content: center;
+    gap: 0;
+  }
+
+  #opponents-zones {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 6px 8px;
+    pointer-events: auto;
+    background: rgba(0,0,0,0.25);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    flex-shrink: 0;
+    order: -1;
+  }
+
+  /* Opponent zones: static layout, no absolute positioning */
+  .opponent-zone {
+    position: static !important;
+    transform: none !important;
+  }
+
+  .opp-cards-fan { width: 48px; height: 36px; }
+  .mini-card { width: 22px; height: 33px; border-radius: 4px; }
+  .mini-card::after { font-size: 8px; }
+  .opp-info-box { min-width: 58px; padding: 4px 7px; }
+  .opp-name { font-size: 11px; max-width: 60px; }
+  .opp-count { font-size: 16px; }
+  .opp-meta { font-size: 9px; }
+
+  /* Table smaller on mobile (already handled by clamp, but ensure center content fits) */
+  .table-center { gap: 8px; }
+  .table-logo { font-size: 18px; }
+  .game-status-inner { font-size: 10px; padding: 3px 8px; max-width: 180px; }
+
+  /* Cards on table */
+  .card { --card-w: 52px; --card-h: 78px; border-radius: 9px; border-width: 2px; }
+  .card-back::after { font-size: 22px; }
+  .card-corner-tl { font-size: 10px; top: 4px; left: 5px; }
+  .card-corner-br { font-size: 10px; bottom: 4px; right: 5px; }
+  .card-label { font-size: 20px; }
+
+  /* My hand */
+  .my-area { padding: 6px 10px 8px; }
+  .my-bar { margin-bottom: 4px; }
+  .my-name { font-size: 11px; }
+  .btn-uno { font-size: 13px; padding: 6px 16px; }
+  .hand { gap: 4px; padding: 2px 4px 2px; }
+  .hand .card { width: 48px; height: 72px; font-size: 17px; }
+  .hand .card .card-corner-tl { font-size: 10px; top: 3px; left: 4px; }
+  .hand .card .card-corner-br { font-size: 10px; bottom: 3px; right: 4px; }
+  .hand .card .card-label { font-size: 17px; }
+
+  /* Color picker */
+  .color-picker { padding: 18px 14px; width: calc(100vw - 40px); }
+  .color-picker p { font-size: 15px; margin-bottom: 12px; }
+  .color-buttons { gap: 8px; justify-content: center; }
+  .color-btn { width: calc(25vw - 14px); height: calc(25vw - 14px); max-width: 70px; max-height: 70px; font-size: 11px; border-radius: 12px; }
+
+  /* Toast */
+  .toast { font-size: 12px; padding: 8px 16px; white-space: normal; text-align: center; max-width: 85vw; }
 }
