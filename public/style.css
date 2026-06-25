@@ -92,7 +92,6 @@ body {
   height: 100vh;
   height: 100dvh;
   overflow: hidden;
-  padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* ─── Table Wrap ────────────────────────────────────────────────── */
@@ -532,7 +531,7 @@ body {
   .card-label { font-size: 20px; }
 
   /* My hand */
-  .my-area { padding: 4px 8px 6px; }
+  .my-area { padding: 4px 8px calc(6px + env(safe-area-inset-bottom)); }
   .my-bar { margin-bottom: 3px; }
   .my-name { font-size: 11px; }
   .btn-uno { font-size: 12px; padding: 5px 14px; }
