@@ -186,11 +186,9 @@ io.on('connection', (socket) => {
     room.deck = shuffle(createDeck());
     room.players.forEach(p => { p.hand = drawCards(room, 7); p.saidUno = false; });
 
-    // First card: skip wilds/wild4
+    // First card: never a wild or wild4
     let first;
     do { first = room.deck.pop(); } while (first.type === 'wild');
-    room.deck.unshift(first); // put non-wild back if it was wild
-    first = room.deck.pop();
     room.discard.push(first);
     room.currentColor = first.color;
     room.phase = 'playing';
