@@ -2,17 +2,20 @@ const socket = io({ reconnection: true, reconnectionAttempts: Infinity, reconnec
 
 let myName = sessionStorage.getItem('unoName') || '';
 let myRoomId = sessionStorage.getItem('unoRoom') || '';
+let myToken = sessionStorage.getItem('unoToken') || '';
 let isCreator = sessionStorage.getItem('unoCreator') === 'true';
 let pendingCardIndex = null;
 
 function saveSession() {
   sessionStorage.setItem('unoName', myName);
   sessionStorage.setItem('unoRoom', myRoomId);
+  sessionStorage.setItem('unoToken', myToken);
   sessionStorage.setItem('unoCreator', isCreator);
 }
 function clearSession() {
   sessionStorage.removeItem('unoName');
   sessionStorage.removeItem('unoRoom');
+  sessionStorage.removeItem('unoToken');
   sessionStorage.removeItem('unoCreator');
 }
 
@@ -42,16 +45,20 @@ document.getElementById('btn-join').addEventListener('click', () => {
 document.getElementById('input-code').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('btn-join').click(); });
 document.getElementById('input-name').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('btn-create').click(); });
 
-socket.on('roomCreated', ({ roomId }) => {
-  myRoomId = roomId; isCreator = true; saveSession();
+socket.on('roomCreated', ({ roomId, sessionToken }) => {
+  myRoomId = roomId; isCreator = true;
+  if (sessionToken) myToken = sessionToken;
+  saveSession();
   document.getElementById('room-code-display').textContent = roomId;
   document.getElementById('btn-start').style.display = 'block';
   document.getElementById('waiting-hint').style.display = 'none';
   showScreen('waiting');
 });
 
-socket.on('roomJoined', ({ roomId }) => {
-  myRoomId = roomId; isCreator = false; saveSession();
+socket.on('roomJoined', ({ roomId, sessionToken }) => {
+  myRoomId = roomId; isCreator = false;
+  if (sessionToken) myToken = sessionToken;
+  saveSession();
   document.getElementById('room-code-display').textContent = roomId;
   document.getElementById('btn-start').style.display = 'none';
   document.getElementById('waiting-hint').style.display = 'block';
@@ -69,7 +76,7 @@ socket.on('rejoinConfirmed', ({ roomId, phase, isCreator: ic }) => {
 });
 
 socket.on('connect', () => {
-  if (myName && myRoomId) socket.emit('rejoinRoom', { name: myName, roomId: myRoomId });
+  if (myName && myRoomId && myToken) socket.emit('rejoinRoom', { name: myName, roomId: myRoomId, sessionToken: myToken });
 });
 
 socket.on('lobbyUpdate', ({ roomId, players }) => {

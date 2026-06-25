@@ -2,6 +2,7 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
+const crypto = require('crypto');
 
 const app = express();
 const server = http.createServer(app);
@@ -12,7 +13,24 @@ app.use(express.static(path.join(__dirname, 'public')));
 // ─── Game State ───────────────────────────────────────────────────────────────
 
 const rooms = {};
-const disconnectTimers = {}; // socketId → timer
+const disconnectTimers = {};
+
+const VALID_COLORS = new Set(['red', 'yellow', 'green', 'blue']);
+
+// Rate limiting: max events per socket per second
+const rateLimits = {};
+function isRateLimited(socketId) {
+  const now = Date.now();
+  if (!rateLimits[socketId]) rateLimits[socketId] = { count: 0, reset: now + 1000 };
+  if (now > rateLimits[socketId].reset) rateLimits[socketId] = { count: 0, reset: now + 1000 };
+  rateLimits[socketId].count++;
+  return rateLimits[socketId].count > 20;
+}
+
+// Clean up ended rooms after 10 minutes
+function scheduleRoomCleanup(roomId) {
+  setTimeout(() => { delete rooms[roomId]; }, 10 * 60 * 1000);
+}
 
 function createDeck() {
   const colors = ['red', 'yellow', 'green', 'blue'];
@@ -110,8 +128,17 @@ function broadcastState(roomId) {
 
 io.on('connection', (socket) => {
 
+  // Rate limit all incoming events
+  socket.use(([event], next) => {
+    if (isRateLimited(socket.id)) return socket.emit('error', 'Trop de requêtes.');
+    next();
+  });
+
   socket.on('createRoom', ({ name }) => {
-    const roomId = Math.random().toString(36).substr(2, 5).toUpperCase();
+    if (!name || typeof name !== 'string') return;
+    name = name.trim().slice(0, 16);
+    if (!name) return;
+    const roomId = crypto.randomBytes(3).toString('hex').toUpperCase().slice(0, 5);
     rooms[roomId] = {
       id: roomId,
       players: [],
@@ -125,21 +152,28 @@ io.on('connection', (socket) => {
       needColorChoice: false,
       drawStack: 0,
     };
-    rooms[roomId].players.push({ id: socket.id, name, hand: [], saidUno: false });
+    const sessionToken = crypto.randomBytes(16).toString('hex');
+    rooms[roomId].players.push({ id: socket.id, name, hand: [], saidUno: false, sessionToken });
     socket.join(roomId);
-    socket.emit('roomCreated', { roomId, name });
+    socket.emit('roomCreated', { roomId, name, sessionToken });
     io.to(roomId).emit('lobbyUpdate', getLobbyState(roomId));
   });
 
   socket.on('joinRoom', ({ name, roomId }) => {
+    if (!name || typeof name !== 'string' || !roomId || typeof roomId !== 'string') return;
+    name = name.trim().slice(0, 16);
+    roomId = roomId.trim().toUpperCase().slice(0, 5);
+    if (!name) return;
     const room = rooms[roomId];
     if (!room) return socket.emit('error', 'Salon introuvable.');
     if (room.phase !== 'lobby') return socket.emit('error', 'La partie a déjà commencé.');
     if (room.players.length >= 10) return socket.emit('error', 'Salon plein (max 10 joueurs).');
+    if (room.players.some(p => p.name === name)) return socket.emit('error', 'Ce pseudo est déjà pris dans ce salon.');
 
-    room.players.push({ id: socket.id, name, hand: [], saidUno: false });
+    const sessionToken = crypto.randomBytes(16).toString('hex');
+    room.players.push({ id: socket.id, name, hand: [], saidUno: false, sessionToken });
     socket.join(roomId);
-    socket.emit('roomJoined', { roomId, name });
+    socket.emit('roomJoined', { roomId, name, sessionToken });
     io.to(roomId).emit('lobbyUpdate', getLobbyState(roomId));
   });
 
@@ -182,6 +216,9 @@ io.on('connection', (socket) => {
     if (playerIdx !== room.currentPlayer) return;
     if (room.needColorChoice) return;
 
+    if (!Number.isInteger(cardIndex) || cardIndex < 0) return;
+    if (chosenColor !== undefined && !VALID_COLORS.has(chosenColor)) return;
+
     const player = room.players[playerIdx];
     const card = player.hand[cardIndex];
     if (!card) return;
@@ -201,6 +238,7 @@ io.on('connection', (socket) => {
       room.phase = 'ended';
       room.winner = player.name;
       broadcastState(roomId);
+      scheduleRoomCleanup(roomId);
       return;
     }
 
@@ -269,6 +307,9 @@ io.on('connection', (socket) => {
   socket.on('callUnoBluff', ({ roomId, targetIndex }) => {
     const room = rooms[roomId];
     if (!room) return;
+    if (!Number.isInteger(targetIndex) || targetIndex < 0 || targetIndex >= room.players.length) return;
+    const caller = room.players.find(p => p.id === socket.id);
+    if (!caller) return;
     const target = room.players[targetIndex];
     if (!target) return;
     // If target has 1 card and didn't say UNO, they draw 2
@@ -297,12 +338,13 @@ io.on('connection', (socket) => {
     io.to(roomId).emit('lobbyUpdate', getLobbyState(roomId));
   });
 
-  socket.on('rejoinRoom', ({ name, roomId }) => {
+  socket.on('rejoinRoom', ({ name, roomId, sessionToken }) => {
+    if (!name || !roomId || !sessionToken) return;
     const room = rooms[roomId];
     if (!room) return socket.emit('error', 'Salon introuvable.');
 
-    const player = room.players.find(p => p.name === name);
-    if (!player) return socket.emit('error', 'Joueur introuvable dans ce salon.');
+    const player = room.players.find(p => p.name === name && p.sessionToken === sessionToken);
+    if (!player) return socket.emit('error', 'Session invalide.');
 
     // Cancel pending removal
     if (disconnectTimers[player.id]) {
