@@ -351,6 +351,18 @@ function showToast(msg) {
   setTimeout(() => t.remove(), 2600);
 }
 
+// ─── Rules Modal ──────────────────────────────────────────────────
+function openRules() { document.getElementById('rules-modal').classList.remove('hidden'); }
+function closeRules() { document.getElementById('rules-modal').classList.add('hidden'); }
+
+document.getElementById('btn-rules-lobby').addEventListener('click', openRules);
+document.getElementById('btn-rules-game').addEventListener('click', openRules);
+document.getElementById('btn-close-rules').addEventListener('click', closeRules);
+document.getElementById('rules-modal').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) closeRules();
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeRules(); });
+
 // Re-render opponents on orientation change
 let lastState = null;
 const _origRenderOpponents = renderOpponents;

@@ -25,6 +25,7 @@
     </div>
     <button class="btn btn-secondary" id="btn-join">Rejoindre</button>
     <p id="lobby-error" class="error-msg"></p>
+    <button class="btn-rules" id="btn-rules-lobby">? Règles du jeu</button>
   </div>
 </div>
 
@@ -66,7 +67,10 @@
     <div class="my-area">
       <div class="my-bar">
         <span id="my-name-display" class="my-name"></span>
-        <button class="btn btn-uno" id="btn-uno">KARD!</button>
+        <div style="display:flex;gap:6px;align-items:center">
+          <button class="btn-rules-sm" id="btn-rules-game" title="Règles">?</button>
+          <button class="btn btn-uno" id="btn-uno">KARD!</button>
+        </div>
       </div>
       <div id="my-hand" class="hand"></div>
     </div>
@@ -92,6 +96,60 @@
     <h2 id="win-message"></h2>
     <button class="btn btn-primary" id="btn-restart" style="display:none">Rejouer</button>
     <button class="btn btn-secondary" id="btn-quit">Quitter le salon</button>
+  </div>
+</div>
+
+<!-- RULES MODAL -->
+<div id="rules-modal" class="rules-overlay hidden" role="dialog" aria-modal="true">
+  <div class="rules-box">
+    <button class="rules-close" id="btn-close-rules" aria-label="Fermer">✕</button>
+    <h2 class="rules-title">KARD — Règles du jeu</h2>
+
+    <section class="rules-section">
+      <h3>🎯 Objectif</h3>
+      <p>Être le premier à se débarrasser de toutes ses cartes. Le premier à 0 carte gagne la partie !</p>
+    </section>
+
+    <section class="rules-section">
+      <h3>🃏 Déroulement d'un tour</h3>
+      <ul>
+        <li>Les cartes jouables sont <strong>surlignées</strong> dans ta main.</li>
+        <li>Clique sur une carte jouable pour la poser.</li>
+        <li>Si tu ne peux pas jouer, clique sur la <strong>pile de pioche</strong> au centre.</li>
+        <li>Le tour passe automatiquement au joueur suivant.</li>
+      </ul>
+    </section>
+
+    <section class="rules-section">
+      <h3>✅ Quand peut-on jouer une carte ?</h3>
+      <p>Une carte est jouable si :</p>
+      <ul>
+        <li>Elle a la même <strong>couleur</strong> que la carte du dessus, ou</li>
+        <li>Elle a la même <strong>valeur / symbole</strong> que la carte du dessus, ou</li>
+        <li>C'est une carte <strong>Joker</strong> (toujours jouable).</li>
+      </ul>
+    </section>
+
+    <section class="rules-section">
+      <h3>⚡ Cartes spéciales</h3>
+      <div class="rules-cards-grid">
+        <div class="rc"><span class="rc-icon">🚫</span><strong>Passe</strong><p>Le joueur suivant passe son tour.</p></div>
+        <div class="rc"><span class="rc-icon">↩</span><strong>Inversion</strong><p>Le sens du jeu s'inverse.</p></div>
+        <div class="rc"><span class="rc-icon">+2</span><strong>+2</strong><p>Le joueur suivant pioche 2 cartes et passe son tour.</p></div>
+        <div class="rc"><span class="rc-icon">🌈</span><strong>Joker</strong><p>Jouable à tout moment. Tu choisis la couleur active.</p></div>
+        <div class="rc"><span class="rc-icon">+4</span><strong>Joker +4</strong><p>Le joueur suivant pioche 4 cartes, passe son tour. Tu choisis la couleur.</p></div>
+      </div>
+    </section>
+
+    <section class="rules-section">
+      <h3>📣 KARD !</h3>
+      <p>Quand il te reste <strong>1 seule carte</strong>, appuie sur le bouton <strong>KARD !</strong> avant que les autres ne te dénoncent. Si tu oublies et qu'un adversaire clique sur <em>KARD ?</em> sous ton nom, tu pioches 2 cartes de pénalité !</p>
+    </section>
+
+    <section class="rules-section">
+      <h3>🏆 Victoire</h3>
+      <p>Le premier joueur à poser sa dernière carte remporte la manche. Le créateur peut relancer une partie depuis l'écran de fin.</p>
+    </section>
   </div>
 </div>
 
