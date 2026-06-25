@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UNO Multijoueur – Dossier de création</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&family=Fira+Code:wght@400;600&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --red:    #e74c3c;
+    --yellow: #f1c40f;
+    --green:  #2ecc71;
+    --blue:   #3498db;
+    --purple: #9b59b6;
+    --dark:   #07070f;
+    --card:   rgba(255,255,255,0.06);
+    --border: rgba(255,255,255,0.1);
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--dark);
+    color: #fff;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ── Slides ── */
+  .slides { width: 100vw; height: 100vh; position: relative; }
+
+  .slide {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 60px 80px;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    transform: translateX(40px);
+  }
+  .slide.active {
+    opacity: 1; pointer-events: all; transform: translateX(0);
+  }
+  .slide.exit {
+    opacity: 0; transform: translateX(-40px);
+  }
+
+  /* ── Navigation ── */
+  .nav {
+    position: fixed; bottom: 28px; left: 50%;
+    transform: translateX(-50%);
+    display: flex; align-items: center; gap: 16px;
+    z-index: 100;
+  }
+  .nav-btn {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff; padding: 10px 24px; border-radius: 50px;
+    font-size: 14px; font-weight: 600; cursor: pointer;
+    transition: background 0.2s;
+  }
+  .nav-btn:hover { background: rgba(255,255,255,0.2); }
+  .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  .slide-counter {
+    font-size: 13px; color: rgba(255,255,255,0.4);
+    min-width: 50px; text-align: center;
+  }
+
+  .dots {
+    position: fixed; top: 24px; left: 50%;
+    transform: translateX(-50%);
+    display: flex; gap: 8px; z-index: 100;
+  }
+  .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: rgba(255,255,255,0.25);
+    cursor: pointer; transition: background 0.2s, transform 0.2s;
+  }
+  .dot.active { background: #fff; transform: scale(1.3); }
+
+  /* ── Common elements ── */
+  .badge {
+    display: inline-block;
+    padding: 4px 12px; border-radius: 50px;
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+  .badge-red    { background: rgba(231,76,60,0.2);  border: 1px solid var(--red);    color: var(--red); }
+  .badge-yellow { background: rgba(241,196,15,0.2); border: 1px solid var(--yellow); color: var(--yellow); }
+  .badge-green  { background: rgba(46,204,113,0.2); border: 1px solid var(--green);  color: var(--green); }
+  .badge-blue   { background: rgba(52,152,219,0.2); border: 1px solid var(--blue);   color: var(--blue); }
+  .badge-purple { background: rgba(155,89,182,0.2); border: 1px solid var(--purple); color: var(--purple); }
+
+  .card-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px 28px;
+  }
+
+  code {
+    font-family: 'Fira Code', monospace;
+    background: rgba(255,255,255,0.08);
+    padding: 2px 8px; border-radius: 6px;
+    font-size: 0.9em; color: #a8daff;
+  }
+
+  /* ── Slide 1 – Title ── */
+  #s1 {
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(231,76,60,0.15) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 50%, rgba(52,152,219,0.15) 0%, transparent 50%),
+      var(--dark);
+  }
+  .big-logo {
+    font-size: 96px; font-weight: 900; letter-spacing: -4px;
+    background: linear-gradient(135deg, #e74c3c 0%, #f1c40f 33%, #2ecc71 66%, #3498db 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    margin-bottom: 16px;
+  }
+  .subtitle { font-size: 22px; color: rgba(255,255,255,0.6); font-weight: 300; margin-bottom: 32px; }
+  .tag-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+
+  /* ── Slide 2 – Stack ── */
+  .tech-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
+    width: 100%; max-width: 900px;
+  }
+  .tech-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 24px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .tech-icon { font-size: 36px; }
+  .tech-name { font-size: 18px; font-weight: 700; }
+  .tech-desc { font-size: 13px; color: rgba(255,255,255,0.5); line-height: 1.5; }
+  .tech-version { font-family: 'Fira Code', monospace; font-size: 12px; color: var(--green); }
+
+  /* ── Slide 3 – Files ── */
+  .file-tree {
+    font-family: 'Fira Code', monospace;
+    font-size: 15px; line-height: 2;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 16px; padding: 28px 36px;
+    width: 100%; max-width: 700px;
+  }
+  .ft-dir  { color: #f1c40f; font-weight: 600; }
+  .ft-file { color: #a8daff; }
+  .ft-desc { color: rgba(255,255,255,0.35); font-size: 12px; }
+  .ft-new  { color: var(--green); }
+
+  /* ── Slide 4 – Architecture ── */
+  .arch {
+    display: flex; align-items: center; gap: 32px;
+    width: 100%; max-width: 900px;
+  }
+  .arch-box {
+    flex: 1; background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 24px; text-align: center;
+  }
+  .arch-icon { font-size: 48px; margin-bottom: 12px; }
+  .arch-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+  .arch-items { font-size: 13px; color: rgba(255,255,255,0.5); line-height: 1.8; }
+  .arch-arrow {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    color: rgba(255,255,255,0.3); font-size: 12px;
+  }
+  .arrow-line {
+    width: 2px; height: 40px;
+    background: linear-gradient(to bottom, var(--blue), var(--green));
+    position: relative;
+  }
+  .arrow-label { font-size: 11px; font-weight: 600; color: var(--blue); text-align: center; white-space: nowrap; }
+
+  /* ── Slide 5 – Features ── */
+  .feat-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    width: 100%; max-width: 900px;
+  }
+  .feat-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 20px;
+    display: flex; align-items: flex-start; gap: 14px;
+  }
+  .feat-icon { font-size: 28px; flex-shrink: 0; }
+  .feat-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .feat-desc { font-size: 13px; color: rgba(255,255,255,0.5); line-height: 1.5; }
+
+  /* ── Slide 6 – UNO Rules ── */
+  .rules-table {
+    width: 100%; max-width: 800px;
+    border-collapse: collapse;
+    font-size: 15px;
+  }
+  .rules-table th {
+    text-align: left; padding: 10px 16px;
+    color: rgba(255,255,255,0.4); font-size: 11px;
+    text-transform: uppercase; letter-spacing: 1px;
+    border-bottom: 1px solid var(--border);
+  }
+  .rules-table td {
+    padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.05);
+    vertical-align: middle;
+  }
+  .card-chip {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 36px; height: 50px; border-radius: 8px;
+    font-size: 14px; font-weight: 900; border: 2px solid rgba(255,255,255,0.3);
+    color: #fff; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); flex-shrink: 0;
+  }
+  .cc-red    { background: linear-gradient(145deg, #e74c3c, #b03a2e); }
+  .cc-yellow { background: linear-gradient(145deg, #f1c40f, #d4ac0d); color: #333; text-shadow: none; }
+  .cc-green  { background: linear-gradient(145deg, #2ecc71, #239a55); }
+  .cc-blue   { background: linear-gradient(145deg, #3498db, #2471a3); }
+  .cc-wild   { background: linear-gradient(145deg, #9b59b6, #e74c3c, #f1c40f); }
+
+  /* ── Slide 7 – Reconnexion ── */
+  .timeline {
+    width: 100%; max-width: 780px;
+    position: relative;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute; left: 20px; top: 0; bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--blue), var(--green), var(--red));
+  }
+  .tl-item {
+    display: flex; align-items: flex-start; gap: 24px;
+    margin-bottom: 20px; padding-left: 8px;
+  }
+  .tl-dot {
+    width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; position: relative; z-index: 1;
+  }
+  .tl-content { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 18px; flex: 1; }
+  .tl-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .tl-desc { font-size: 13px; color: rgba(255,255,255,0.5); line-height: 1.5; }
+
+  /* ── Slide 8 – Network ── */
+  .network-box {
+    width: 100%; max-width: 780px;
+  }
+  .cmd-block {
+    background: #0d0d1a; border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px; padding: 16px 20px; margin-bottom: 14px;
+    font-family: 'Fira Code', monospace; font-size: 14px;
+  }
+  .cmd-label { font-size: 11px; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .cmd-line { color: var(--green); }
+  .cmd-comment { color: rgba(255,255,255,0.3); }
+  .url-chip {
+    display: inline-block;
+    background: rgba(52,152,219,0.15); border: 1px solid var(--blue);
+    color: #a8daff; padding: 8px 16px; border-radius: 8px;
+    font-family: 'Fira Code', monospace; font-size: 14px; margin-right: 10px; margin-top: 6px;
+  }
+
+  /* ── Headings ── */
+  .slide-title {
+    font-size: 36px; font-weight: 900; margin-bottom: 8px; text-align: center;
+  }
+  .slide-sub {
+    font-size: 15px; color: rgba(255,255,255,0.4); margin-bottom: 32px; text-align: center;
+  }
+  .accent { color: var(--yellow); }
+
+  /* ── Progress bar ── */
+  .progress-bar {
+    position: fixed; top: 0; left: 0; height: 3px;
+    background: linear-gradient(90deg, var(--red), var(--yellow), var(--green), var(--blue));
+    transition: width 0.4s ease; z-index: 200;
+  }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progress"></div>
+
+<div class="dots" id="dots"></div>
+
+<div class="slides">
+
+  <!-- ── Slide 1 : Titre ── -->
+  <div class="slide active" id="s1">
+    <div class="big-logo">UNO</div>
+    <div class="subtitle">Dossier de création — Jeu multijoueur en réseau</div>
+    <div class="tag-row">
+      <span class="badge badge-green">Node.js</span>
+      <span class="badge badge-blue">Socket.io</span>
+      <span class="badge badge-red">Express</span>
+      <span class="badge badge-yellow">HTML / CSS / JS</span>
+      <span class="badge badge-purple">Multijoueur temps réel</span>
+    </div>
+    <p style="margin-top:40px; font-size:13px; color:rgba(255,255,255,0.25)">← → pour naviguer · Créé par Claude Code</p>
+  </div>
+
+  <!-- ── Slide 2 : Stack ── -->
+  <div class="slide" id="s2">
+    <div class="slide-title">Technologies <span class="accent">installées</span></div>
+    <div class="slide-sub">Tout ce qui a été installé sur ta machine</div>
+    <div class="tech-grid">
+      <div class="tech-card">
+        <div class="tech-icon">🟢</div>
+        <div class="tech-name">Node.js</div>
+        <div class="tech-version">Runtime JS côté serveur</div>
+        <div class="tech-desc">Fait tourner le serveur UNO sur ta machine. Doit être installé globalement.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">⚡</div>
+        <div class="tech-name">Express</div>
+        <div class="tech-version">v4.18.2 · npm install</div>
+        <div class="tech-desc">Sert les fichiers HTML/CSS/JS aux navigateurs des joueurs via HTTP.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">🔌</div>
+        <div class="tech-name">Socket.io</div>
+        <div class="tech-version">v4.7.2 · npm install</div>
+        <div class="tech-desc">Communication temps réel bidirectionnelle entre le serveur et tous les joueurs.</div>
+      </div>
+    </div>
+    <div style="margin-top:24px; font-size:13px; color:rgba(255,255,255,0.3)">
+      Installation : <code>npm install</code> dans le dossier <code>uno-game/</code> → 90 packages installés automatiquement
+    </div>
+  </div>
+
+  <!-- ── Slide 3 : Structure fichiers ── -->
+  <div class="slide" id="s3">
+    <div class="slide-title">Structure des <span class="accent">fichiers</span></div>
+    <div class="slide-sub">Arborescence complète du projet créé</div>
+    <div class="file-tree">
+      <div><span class="ft-dir">📁 uno-game/</span> <span class="ft-desc">— dossier principal (Bureau)</span></div>
+      <div style="padding-left:20px"><span class="ft-new">📄 server.js</span> <span class="ft-desc">— serveur Node.js + logique du jeu (335 lignes)</span></div>
+      <div style="padding-left:20px"><span class="ft-new">📄 package.json</span> <span class="ft-desc">— config npm + dépendances</span></div>
+      <div style="padding-left:20px"><span class="ft-dir">📁 node_modules/</span> <span class="ft-desc">— 90 packages auto-installés</span></div>
+      <div style="padding-left:20px"><span class="ft-dir">📁 public/</span> <span class="ft-desc">— fichiers envoyés aux navigateurs</span></div>
+      <div style="padding-left:40px"><span class="ft-new">📄 index.html</span> <span class="ft-desc">— interface du jeu (lobby, table, victoire)</span></div>
+      <div style="padding-left:40px"><span class="ft-new">📄 style.css</span> <span class="ft-desc">— design complet (table, cartes, animations)</span></div>
+      <div style="padding-left:40px"><span class="ft-new">📄 game.js</span> <span class="ft-desc">— logique client + rendu visuel</span></div>
+      <div style="padding-left:20px"><span class="ft-new">📄 diapo.html</span> <span class="ft-desc">— ce diaporama</span></div>
+    </div>
+    <div style="margin-top:18px; font-size:13px; color:rgba(255,255,255,0.3)">
+      Lancement : <code>npm start</code> → <code>node server.js</code> → serveur sur le port <code>3000</code>
+    </div>
+  </div>
+
+  <!-- ── Slide 4 : Architecture ── -->
+  <div class="slide" id="s4">
+    <div class="slide-title">Architecture <span class="accent">client-serveur</span></div>
+    <div class="slide-sub">Comment les joueurs communiquent en temps réel</div>
+    <div class="arch">
+      <div class="arch-box">
+        <div class="arch-icon">🖥️</div>
+        <div class="arch-title">Serveur (ton PC)</div>
+        <div class="arch-items">
+          Node.js + Express<br>
+          Socket.io server<br>
+          Logique UNO<br>
+          Gestion des salons<br>
+          Distribution des cartes
+        </div>
+      </div>
+      <div class="arch-arrow">
+        <div class="arrow-label">Events Socket.io</div>
+        <div class="arrow-line"></div>
+        <div class="arrow-label">playCard · drawCard<br>sayUno · rejoinRoom</div>
+        <div class="arrow-line"></div>
+        <div class="arrow-label">gameState · lobbyUpdate<br>playerDisconnected</div>
+      </div>
+      <div class="arch-box">
+        <div class="arch-icon">💻</div>
+        <div class="arch-title">Clients (navigateurs)</div>
+        <div class="arch-items">
+          HTML + CSS + JS<br>
+          Socket.io client<br>
+          Rendu de la table<br>
+          Gestion des clics<br>
+          Reconnexion auto
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:22px; font-size:13px; color:rgba(255,255,255,0.3); text-align:center">
+      Tout passe par des <strong style="color:rgba(255,255,255,0.6)">événements WebSocket</strong> en temps réel — pas de rechargement de page
+    </div>
+  </div>
+
+  <!-- ── Slide 5 : Fonctionnalités ── -->
+  <div class="slide" id="s5">
+    <div class="slide-title">Fonctionnalités <span class="accent">implémentées</span></div>
+    <div class="slide-sub">Ce que le jeu sait faire</div>
+    <div class="feat-grid">
+      <div class="feat-card">
+        <div class="feat-icon">🏠</div>
+        <div>
+          <div class="feat-title">Système de salons</div>
+          <div class="feat-desc">Création d'un salon avec code à 5 lettres aléatoire. Rejoindre via ce code. 2 à 10 joueurs.</div>
+        </div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🃏</div>
+        <div>
+          <div class="feat-title">Deck UNO complet</div>
+          <div class="feat-desc">108 cartes : chiffres 0–9, Skip, Reverse, +2, Joker couleur, Joker +4. Mélange aléatoire.</div>
+        </div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🔄</div>
+        <div>
+          <div class="feat-title">Tours & effets</div>
+          <div class="feat-desc">Sens de jeu, inversion, passe son tour, pioche forcée. Première carte avec effet appliqué.</div>
+        </div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">📢</div>
+        <div>
+          <div class="feat-title">UNO & bluff</div>
+          <div class="feat-desc">Bouton UNO à presser avec 1 carte. Bouton "Choper!" pour punir ceux qui oublient (+2 cartes).</div>
+        </div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🔌</div>
+        <div>
+          <div class="feat-title">Reconnexion auto</div>
+          <div class="feat-desc">30 secondes pour revenir après coupure. Session sauvée en sessionStorage. Tour sauté automatiquement.</div>
+        </div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🎨</div>
+        <div>
+          <div class="feat-title">Table visuelle</div>
+          <div class="feat-desc">Table ronde verte, cartes dos retourné en éventail autour, pioche et défausse au centre.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Slide 6 : Règles ── -->
+  <div class="slide" id="s6">
+    <div class="slide-title">Les cartes <span class="accent">UNO</span></div>
+    <div class="slide-sub">108 cartes dans le deck — toutes gérées par le serveur</div>
+    <table class="rules-table">
+      <thead>
+        <tr>
+          <th>Carte</th>
+          <th>Couleurs</th>
+          <th>Quantité</th>
+          <th>Effet</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><div style="display:flex;gap:6px"><span class="card-chip cc-red">0</span><span class="card-chip cc-blue">3</span><span class="card-chip cc-green">7</span></div></td>
+          <td><span class="badge badge-red">4 couleurs</span></td>
+          <td>76 cartes</td>
+          <td>Jouer si même couleur ou même chiffre</td>
+        </tr>
+        <tr>
+          <td><span class="card-chip cc-yellow">🚫</span></td>
+          <td><span class="badge badge-red">4 couleurs</span></td>
+          <td>8 cartes</td>
+          <td>Le joueur suivant passe son tour</td>
+        </tr>
+        <tr>
+          <td><span class="card-chip cc-green">↩</span></td>
+          <td><span class="badge badge-red">4 couleurs</span></td>
+          <td>8 cartes</td>
+          <td>Inverse le sens du jeu</td>
+        </tr>
+        <tr>
+          <td><span class="card-chip cc-blue">+2</span></td>
+          <td><span class="badge badge-red">4 couleurs</span></td>
+          <td>8 cartes</td>
+          <td>Suivant pioche 2 cartes et passe</td>
+        </tr>
+        <tr>
+          <td><span class="card-chip cc-wild">🌈</span></td>
+          <td><span class="badge badge-purple">Joker</span></td>
+          <td>4 cartes</td>
+          <td>Choix libre de la couleur</td>
+        </tr>
+        <tr>
+          <td><span class="card-chip cc-wild">+4</span></td>
+          <td><span class="badge badge-purple">Joker</span></td>
+          <td>4 cartes</td>
+          <td>Choix couleur + suivant pioche 4</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── Slide 7 : Reconnexion ── -->
+  <div class="slide" id="s7">
+    <div class="slide-title">Gestion de la <span class="accent">déconnexion</span></div>
+    <div class="slide-sub">Problème résolu — la partie ne s'arrête plus en cas de coupure</div>
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-dot" style="background:#e74c3c">❌</div>
+        <div class="tl-content">
+          <div class="tl-title">Problème original</div>
+          <div class="tl-desc">Dès qu'un joueur perdait la connexion, il était supprimé immédiatement. La partie crashait, tout le monde devait recharger.</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:#f1c40f">⏳</div>
+        <div class="tl-content">
+          <div class="tl-title">Période de grâce — 30 secondes</div>
+          <div class="tl-desc">Le joueur est marqué "déconnecté" (🔌) mais reste dans la partie. Son tour est sauté automatiquement. Les autres voient sa zone grisée.</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:#3498db">💾</div>
+        <div class="tl-content">
+          <div class="tl-title">Session sauvée — sessionStorage</div>
+          <div class="tl-desc">Le pseudo, le code du salon et le rôle (créateur ou non) sont sauvegardés dans le navigateur.</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:#2ecc71">✅</div>
+        <div class="tl-content">
+          <div class="tl-title">Reconnexion automatique</div>
+          <div class="tl-desc">Socket.io reconnecte automatiquement. À la reconnexion, le client envoie <code>rejoinRoom</code>. Le serveur restaure l'état complet du jeu.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Slide 8 : Réseau ── -->
+  <div class="slide" id="s8">
+    <div class="slide-title">Jouer en <span class="accent">réseau local</span></div>
+    <div class="slide-sub">Comment connecter tes amis sur le même Wi-Fi</div>
+    <div class="network-box">
+      <div class="cmd-block">
+        <div class="cmd-label">1. Lancer le serveur (toi)</div>
+        <div class="cmd-line">cd C:\Users\Utilisateur\Desktop\uno-game</div>
+        <div class="cmd-line">npm start</div>
+      </div>
+      <div class="cmd-block">
+        <div class="cmd-label">2. Trouver ton IP locale</div>
+        <div class="cmd-line">ipconfig</div>
+        <div class="cmd-comment"># Cherche "Adresse IPv4" → ex: 10.10.36.89</div>
+      </div>
+      <div class="cmd-block">
+        <div class="cmd-label">3. Adresses à ouvrir dans le navigateur</div>
+        <div style="margin-top:6px">
+          <span class="url-chip">http://localhost:3000</span>
+          <span style="font-size:12px;color:rgba(255,255,255,0.3)">← toi</span>
+        </div>
+        <div style="margin-top:8px">
+          <span class="url-chip">http://10.10.36.89:3000</span>
+          <span style="font-size:12px;color:rgba(255,255,255,0.3)">← tes amis (même Wi-Fi)</span>
+        </div>
+      </div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.3);margin-top:8px">
+        💡 Pour jouer à distance (internet) → déployer sur <strong style="color:rgba(255,255,255,0.6)">Railway.app</strong> (gratuit, supporte Socket.io)
+      </div>
+    </div>
+  </div>
+
+</div><!-- /slides -->
+
+<div class="nav">
+  <button class="nav-btn" id="prev">← Précédent</button>
+  <div class="slide-counter" id="counter">1 / 8</div>
+  <button class="nav-btn" id="next">Suivant →</button>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let current = 0;
+
+  const dotsEl = document.getElementById('dots');
+  const dots = [];
+  for (let i = 0; i < total; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.addEventListener('click', () => goTo(i));
+    dotsEl.appendChild(d);
+    dots.push(d);
+  }
+
+  function goTo(n) {
+    slides[current].classList.remove('active');
+    slides[current].classList.add('exit');
+    setTimeout(() => slides[current >= 0 ? current : 0].classList.remove('exit'), 500);
+    const prev = current;
+    current = Math.max(0, Math.min(n, total - 1));
+    slides[current].classList.add('active');
+    dots.forEach((d, i) => d.classList.toggle('active', i === current));
+    document.getElementById('counter').textContent = `${current + 1} / ${total}`;
+    document.getElementById('prev').disabled = current === 0;
+    document.getElementById('next').disabled = current === total - 1;
+    document.getElementById('progress').style.width = `${((current + 1) / total) * 100}%`;
+    // cleanup exit
+    setTimeout(() => slides[prev].classList.remove('exit'), 500);
+  }
+
+  document.getElementById('prev').addEventListener('click', () => goTo(current - 1));
+  document.getElementById('next').addEventListener('click', () => goTo(current + 1));
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') goTo(current + 1);
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') goTo(current - 1);
+  });
+
+  goTo(0);
+</script>
+</body>
+</html>

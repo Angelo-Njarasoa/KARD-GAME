@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KARD – Jeu de cartes multijoueur</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- LOBBY -->
+<div id="screen-lobby" class="screen active">
+  <div class="lobby-box">
+    <h1 class="logo">KARD</h1>
+    <p class="tagline">Jeu de cartes multijoueur en réseau</p>
+    <div class="form-group">
+      <label>Ton pseudo</label>
+      <input id="input-name" type="text" maxlength="16" placeholder="Ex: Angelo" autocomplete="off">
+    </div>
+    <button class="btn btn-primary" id="btn-create">Créer une partie</button>
+    <div class="divider">ou</div>
+    <div class="form-group">
+      <label>Code du salon</label>
+      <input id="input-code" type="text" maxlength="5" placeholder="Ex: AB12C" autocomplete="off" style="text-transform:uppercase">
+    </div>
+    <button class="btn btn-secondary" id="btn-join">Rejoindre</button>
+    <p id="lobby-error" class="error-msg"></p>
+  </div>
+</div>
+
+<!-- WAITING ROOM -->
+<div id="screen-waiting" class="screen">
+  <div class="lobby-box">
+    <h2>Salon <span id="room-code-display" class="room-code"></span></h2>
+    <p class="hint">Partage ce code à tes amis !</p>
+    <div id="player-list" class="player-list"></div>
+    <button class="btn btn-primary" id="btn-start" style="display:none">Lancer la partie !</button>
+    <p class="hint" id="waiting-hint">En attente du créateur…</p>
+    <p id="waiting-error" class="error-msg"></p>
+  </div>
+</div>
+
+<!-- GAME -->
+<div id="screen-game" class="screen">
+  <div class="game-layout">
+
+    <!-- Table area -->
+    <div class="table-wrap" id="table-wrap">
+      <div id="opponents-zones"></div>
+      <div class="table">
+        <div class="table-center">
+          <div id="deck-pile" class="pile-area deck-pile-area" title="Piocher">
+            <div class="card card-back deck-card"><span>PIOCHER</span></div>
+          </div>
+          <div class="table-logo">KARD</div>
+          <div class="pile-area discard-pile-area">
+            <div id="top-card" class="card"></div>
+            <div id="current-color-indicator" class="color-ring"></div>
+          </div>
+        </div>
+        <div id="game-status" class="game-status-inner"></div>
+      </div>
+    </div>
+
+    <!-- My area -->
+    <div class="my-area">
+      <div class="my-bar">
+        <span id="my-name-display" class="my-name"></span>
+        <button class="btn btn-uno" id="btn-uno">KARD!</button>
+      </div>
+      <div id="my-hand" class="hand"></div>
+    </div>
+
+  </div>
+
+  <!-- Color picker -->
+  <div id="color-picker" class="color-picker hidden">
+    <p>Choisis une couleur :</p>
+    <div class="color-buttons">
+      <button class="color-btn" data-color="red">Rouge</button>
+      <button class="color-btn" data-color="yellow">Jaune</button>
+      <button class="color-btn" data-color="green">Vert</button>
+      <button class="color-btn" data-color="blue">Bleu</button>
+    </div>
+  </div>
+</div>
+
+<!-- WIN -->
+<div id="screen-win" class="screen">
+  <div class="lobby-box">
+    <div class="win-emoji">🎉</div>
+    <h2 id="win-message"></h2>
+    <button class="btn btn-primary" id="btn-restart" style="display:none">Rejouer</button>
+    <button class="btn btn-secondary" id="btn-quit">Quitter le salon</button>
+  </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
