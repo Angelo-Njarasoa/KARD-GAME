@@ -403,10 +403,12 @@ body {
   justify-content: center;
   gap: 5px;
   overflow-x: auto;
-  padding: 2px 4px 4px;
+  padding: 2px 0 4px;
   scrollbar-width: none;
 }
 .hand::-webkit-scrollbar { display: none; }
+/* Espaceurs pour que la 1ère et dernière carte ne soient jamais rognées */
+.hand::before, .hand::after { content: ''; min-width: 6px; flex-shrink: 0; }
 .hand .card { width: 60px; height: 90px; font-size: 20px; flex-shrink: 0; }
 .hand .card .card-corner-tl { font-size: 11px; }
 .hand .card .card-corner-br { font-size: 11px; }
@@ -669,7 +671,8 @@ body {
   .my-bar { margin-bottom: 3px; }
   .my-name { font-size: 11px; }
   .btn-uno { font-size: 12px; padding: 5px 14px; }
-  .hand { gap: 3px; padding: 2px 4px; }
+  .hand { gap: 3px; padding: 2px 0; }
+  .hand::before, .hand::after { min-width: 8px; }
   .hand .card { width: 44px; height: 66px; font-size: 15px; border-radius: 8px; }
   .hand .card .card-corner-tl { font-size: 9px; top: 3px; left: 4px; }
   .hand .card .card-corner-br { font-size: 9px; bottom: 3px; right: 4px; }
