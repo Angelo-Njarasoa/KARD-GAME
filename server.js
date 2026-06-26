@@ -247,9 +247,12 @@ io.on('connection', (socket) => {
         room.needColorChoice = false;
         if (card.value === 'wild4') {
           const nextIdx = nextPlayerIndex(room);
+          const targetName = room.players[nextIdx].name;
           room.players[nextIdx].hand.push(...drawCards(room, 4));
+          io.to(roomId).emit('gameEvent', { type: 'wild4', playerName: player.name, targetName, color: chosenColor });
           advanceTurn(room, true);
         } else {
+          io.to(roomId).emit('gameEvent', { type: 'wild', playerName: player.name, color: chosenColor });
           advanceTurn(room);
         }
       } else {
@@ -260,14 +263,19 @@ io.on('connection', (socket) => {
     } else {
       room.currentColor = card.color;
       if (card.value === 'skip') {
+        const targetName = room.players[nextPlayerIndex(room)].name;
+        io.to(roomId).emit('gameEvent', { type: 'skip', playerName: player.name, targetName });
         advanceTurn(room, true);
       } else if (card.value === 'reverse') {
         room.direction *= -1;
+        io.to(roomId).emit('gameEvent', { type: 'reverse', playerName: player.name });
         if (room.players.length === 2) advanceTurn(room, true);
         else advanceTurn(room);
       } else if (card.value === 'draw2') {
         const nextIdx = nextPlayerIndex(room);
+        const targetName = room.players[nextIdx].name;
         room.players[nextIdx].hand.push(...drawCards(room, 2));
+        io.to(roomId).emit('gameEvent', { type: 'draw2', playerName: player.name, targetName });
         advanceTurn(room, true);
       } else {
         advanceTurn(room);
@@ -300,6 +308,23 @@ io.on('connection', (socket) => {
       player.saidUno = true;
       broadcastState(roomId);
     }
+  });
+
+  socket.on('cardHover', ({ roomId, cardIndex }) => {
+    const room = rooms[roomId];
+    if (!room || room.phase !== 'playing') return;
+    if (!Number.isInteger(cardIndex) || cardIndex < 0) return;
+    const player = room.players.find(p => p.id === socket.id);
+    if (!player) return;
+    socket.to(roomId).emit('opponentHover', { playerName: player.name, cardIndex, handCount: player.hand.length });
+  });
+
+  socket.on('cardHoverEnd', ({ roomId }) => {
+    const room = rooms[roomId];
+    if (!room) return;
+    const player = room.players.find(p => p.id === socket.id);
+    if (!player) return;
+    socket.to(roomId).emit('opponentHoverEnd', { playerName: player.name });
   });
 
   socket.on('callUnoBluff', ({ roomId, targetIndex }) => {

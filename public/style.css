@@ -279,6 +279,12 @@ body {
   border: 2px solid rgba(255,255,255,0.2);
   box-shadow: 0 2px 8px rgba(0,0,0,0.5);
   transform-origin: bottom center;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+.mini-card.hovered {
+  transform: rotate(var(--rot, 0deg)) translateY(calc(var(--ty, 0px) - 10px)) !important;
+  box-shadow: 0 0 14px rgba(255,255,255,0.75), 0 0 28px rgba(167,139,250,0.5) !important;
+  border-color: rgba(255,255,255,0.85) !important;
 }
 .mini-card::after {
   content: '✦';
@@ -464,6 +470,50 @@ body {
   animation: fadeInOut 2.5s ease forwards;
   white-space: nowrap;
 }
+/* ─── Flying Card Animation ─────────────────────────────────────── */
+.flying-card {
+  position: fixed;
+  border-radius: 9px;
+  background: repeating-linear-gradient(135deg, #0d0820 0px, #0d0820 6px, #1a0f3d 6px, #1a0f3d 12px);
+  border: 2px solid rgba(255,255,255,0.35);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+  pointer-events: none;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: left 0.38s cubic-bezier(0.25,0.46,0.45,0.94),
+              top  0.38s cubic-bezier(0.25,0.46,0.45,0.94),
+              opacity 0.38s ease,
+              transform 0.38s ease;
+}
+.flying-card::after { content: '✦'; color: rgba(255,255,255,0.3); font-size: 20px; }
+
+/* ─── Game Event Notification ───────────────────────────────────── */
+.game-event {
+  position: absolute;
+  top: 36%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(8,4,18,0.9);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 22px;
+  padding: 10px 22px;
+  font-size: 14px;
+  font-weight: 600;
+  pointer-events: none;
+  z-index: 300;
+  white-space: nowrap;
+  animation: eventPop 2.2s forwards;
+}
+@keyframes eventPop {
+  0%   { opacity: 0; transform: translateX(-50%) scale(0.82); }
+  12%  { opacity: 1; transform: translateX(-50%) scale(1.04); }
+  20%  { transform: translateX(-50%) scale(1); }
+  78%  { opacity: 1; }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-12px); }
+}
+
 /* ─── Rules Button ──────────────────────────────────────────────── */
 .btn-rules {
   margin-top: 14px;

@@ -5,6 +5,7 @@ let myRoomId = sessionStorage.getItem('unoRoom') || '';
 let myToken = sessionStorage.getItem('unoToken') || '';
 let isCreator = sessionStorage.getItem('unoCreator') === 'true';
 let pendingCardIndex = null;
+let isMyTurn = false;
 
 function saveSession() {
   sessionStorage.setItem('unoName', myName);
@@ -97,6 +98,7 @@ document.getElementById('btn-start').addEventListener('click', () => {
 
 // ─── Game State ───────────────────────────────────────────────────
 socket.on('gameState', (state) => {
+  isMyTurn = state.isYourTurn;
   showScreen('game');
   renderOpponents(state);
   renderTopCard(state.topCard);
@@ -143,6 +145,7 @@ function renderOpponents(state) {
     zone.className = 'opponent-zone'
       + (p.isCurrent ? ' active-turn' : '')
       + (p.disconnected ? ' disconnected' : '');
+    zone.dataset.playerName = p.name;
 
     if (!mobile) {
       const angle = angles[i];
@@ -183,7 +186,7 @@ function buildFan(count) {
   for (let i = 0; i < total; i++) {
     const rot = total > 1 ? ((i / (total - 1)) - 0.5) * 40 : 0;
     const ty = Math.abs(rot) * 0.3;
-    cards.push(`<div class="mini-card" style="transform: rotate(${rot}deg) translateY(${ty}px); z-index:${i}"></div>`);
+    cards.push(`<div class="mini-card" style="--rot:${rot}deg;--ty:${ty}px;transform:rotate(${rot}deg) translateY(${ty}px);z-index:${i}" data-fan="${i}"></div>`);
   }
   return `<div class="opp-cards-fan">${cards.join('')}</div>`;
 }
@@ -223,6 +226,8 @@ function renderHand(hand, topCard, currentColor, isMyTurn, needColorChoice) {
     div.innerHTML = buildCardInner(card);
     div.title = cardTitle(card);
     if (playable) div.addEventListener('click', () => playCard(i, card));
+    div.addEventListener('mouseenter', () => socket.emit('cardHover', { roomId: myRoomId, cardIndex: i }));
+    div.addEventListener('mouseleave', () => socket.emit('cardHoverEnd', { roomId: myRoomId }));
     el.appendChild(div);
   });
 }
@@ -247,6 +252,7 @@ document.querySelectorAll('.color-btn').forEach(btn => {
 
 document.getElementById('deck-pile').addEventListener('click', () => {
   socket.emit('drawCard', { roomId: myRoomId });
+  if (isMyTurn) animateDraw();
 });
 
 document.getElementById('btn-uno').addEventListener('click', () => {
@@ -350,6 +356,59 @@ function showToast(msg) {
   document.body.appendChild(t);
   setTimeout(() => t.remove(), 2600);
 }
+
+// ─── Animations & Effects ─────────────────────────────────────────
+function animateDraw() {
+  const deckEl = document.querySelector('#deck-pile .card-back');
+  const handEl = document.getElementById('my-hand');
+  if (!deckEl || !handEl) return;
+  const dr = deckEl.getBoundingClientRect();
+  const hr = handEl.getBoundingClientRect();
+  const fly = document.createElement('div');
+  fly.className = 'flying-card';
+  fly.style.cssText = `left:${dr.left}px;top:${dr.top}px;width:${dr.width}px;height:${dr.height}px`;
+  document.body.appendChild(fly);
+  fly.getBoundingClientRect(); // force reflow
+  fly.style.left = `${hr.left + 12}px`;
+  fly.style.top  = `${hr.top + 4}px`;
+  fly.style.opacity = '0';
+  fly.style.transform = 'scale(0.6)';
+  setTimeout(() => fly.remove(), 420);
+}
+
+const EVENT_LABELS = {
+  skip:    ({ playerName, targetName }) => `🚫 ${playerName} — ${targetName} passe son tour`,
+  reverse: ({ playerName })             => `↩ ${playerName} — sens inversé`,
+  draw2:   ({ playerName, targetName }) => `+2 ${playerName} — ${targetName} pioche 2 cartes`,
+  wild4:   ({ playerName, targetName }) => `+4 ${playerName} — ${targetName} pioche 4 cartes`,
+  wild:    ({ playerName })             => `🌈 ${playerName} choisit la couleur`,
+};
+
+socket.on('gameEvent', (data) => {
+  const fn = EVENT_LABELS[data.type];
+  if (!fn) return;
+  const el = document.createElement('div');
+  el.className = 'game-event';
+  el.textContent = fn(data);
+  document.getElementById('screen-game').appendChild(el);
+  setTimeout(() => el.remove(), 2200);
+});
+
+socket.on('opponentHover', ({ playerName, cardIndex, handCount }) => {
+  document.querySelectorAll('.opponent-zone').forEach(zone => {
+    if (zone.dataset.playerName !== playerName) return;
+    const fanSize = Math.min(handCount, 5);
+    const fanIdx = fanSize > 1 ? Math.min(Math.floor(cardIndex * fanSize / handCount), fanSize - 1) : 0;
+    zone.querySelectorAll('.mini-card').forEach((mc, i) => mc.classList.toggle('hovered', i === fanIdx));
+  });
+});
+
+socket.on('opponentHoverEnd', ({ playerName }) => {
+  document.querySelectorAll(`.opponent-zone[data-player-name]`).forEach(zone => {
+    if (zone.dataset.playerName !== playerName) return;
+    zone.querySelectorAll('.mini-card.hovered').forEach(mc => mc.classList.remove('hovered'));
+  });
+});
 
 // ─── Rules Modal ──────────────────────────────────────────────────
 function openRules() { document.getElementById('rules-modal').classList.remove('hidden'); }
