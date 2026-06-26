@@ -671,7 +671,7 @@ body {
   .my-bar { margin-bottom: 3px; }
   .my-name { font-size: 11px; }
   .btn-uno { font-size: 12px; padding: 5px 14px; }
-  .hand { gap: 3px; padding: 2px 0; }
+  .hand { gap: 3px; padding: 2px 0; justify-content: flex-start; }
   .hand::before, .hand::after { min-width: 8px; }
   .hand .card { width: 44px; height: 66px; font-size: 15px; border-radius: 8px; }
   .hand .card .card-corner-tl { font-size: 9px; top: 3px; left: 4px; }
